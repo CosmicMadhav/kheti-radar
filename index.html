@@ -39,12 +39,21 @@
 
   /* ---------- Hero ---------- */
   .hero{
+    position:relative;
     background:
       radial-gradient(720px 260px at 88% -40px, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%),
+      repeating-linear-gradient(115deg, color-mix(in srgb, var(--rust) 5%, transparent) 0 2px, transparent 2px 34px),
       linear-gradient(180deg, var(--bg-2), var(--bg));
     border-bottom:1px solid var(--border);
-    padding:34px 22px 26px;
-    margin:0 0 34px;
+    padding:34px 22px 30px;
+    margin:0 0 38px;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:0; height:3px;
+    background:repeating-linear-gradient(90deg, var(--rust) 0 18px, var(--accent) 18px 36px);
+    opacity:0.55;
   }
   .hero-inner{max-width:1120px; margin:0 auto;}
   .top-row{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:22px;}
@@ -77,10 +86,13 @@
 
   .stat-row{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px;}
   .stat{
-    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px;
-    box-shadow:var(--shadow-sm);
+    position:relative; background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:15px 16px 14px; box-shadow:var(--shadow-sm); overflow:hidden;
   }
-  .stat .n{font-family:"Fraunces", serif; font-weight:700; font-size:1.7rem; font-variant-numeric:tabular-nums; line-height:1;}
+  .stat::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent-color, var(--accent));
+  }
+  .stat .n{font-family:"Fraunces", serif; font-weight:700; font-size:1.7rem; font-variant-numeric:tabular-nums; line-height:1; color:var(--accent-color, var(--ink));}
   .stat .l{font-size:0.72rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.05em; margin-top:6px;}
 
   /* ---------- Sections ---------- */
@@ -113,11 +125,11 @@
 
   .feed{display:flex; flex-direction:column; gap:26px;}
   .feed-group-head{
-    display:flex; align-items:center; gap:8px; font-weight:700; font-size:0.86rem;
-    text-transform:uppercase; letter-spacing:0.04em; margin-bottom:12px;
-    padding-bottom:8px; border-bottom:1px solid var(--border-soft);
+    display:flex; align-items:center; gap:9px; font-weight:700; font-size:0.86rem;
+    text-transform:uppercase; letter-spacing:0.05em; margin-bottom:14px;
+    padding:9px 14px; border-radius:9px; background:var(--surface-2);
   }
-  .feed-group-head .sw{width:8px; height:8px; border-radius:50%; flex:none;}
+  .feed-group-head .sw{width:9px; height:9px; border-radius:3px; flex:none;}
   .feed-group-count{
     margin-left:auto; font-family:"IBM Plex Mono", monospace; font-weight:500;
     color:var(--ink-faint); text-transform:none; letter-spacing:0; background:var(--surface-2);
@@ -163,7 +175,8 @@
 
   .dir-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(248px,1fr)); gap:14px;}
   .s-card{
-    background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow);
+    background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--s-color, var(--border));
+    border-radius:14px; box-shadow:var(--shadow);
     padding:16px; display:flex; flex-direction:column; gap:10px; transition:box-shadow .15s, transform .15s;
   }
   .s-card:hover{ box-shadow:var(--shadow-lg); transform:translateY(-2px); }
@@ -185,7 +198,15 @@
   .s-links a.web{background:var(--ink); color:var(--bg); border-color:var(--ink);}
   .s-links a.li:hover{border-color:var(--rust); color:var(--rust);}
 
-  footer{margin-top:56px; padding-top:18px; border-top:1px solid var(--border); color:var(--ink-faint); font-size:0.76rem; font-family:"IBM Plex Mono", monospace; text-align:center;}
+  footer{
+    margin-top:56px; padding-top:18px; color:var(--ink-faint); font-size:0.76rem;
+    font-family:"IBM Plex Mono", monospace; text-align:center;
+    border-top:none; position:relative;
+  }
+  footer::before{
+    content:""; display:block; height:2px; width:100%; margin:0 0 18px;
+    background:repeating-linear-gradient(90deg, var(--border) 0 10px, transparent 10px 16px);
+  }
 
   @media (prefers-reduced-motion: reduce){ .dot.pending{animation:none;} .card, .s-card, .day-chip{transition:none;} }
 </style>
@@ -212,10 +233,10 @@
     <p class="hero-sub">Funding rounds, incubation cohorts, partnerships and buzz — pulled daily from news and social media — plus a startup directory that links straight to each founder's own site.</p>
 
     <div class="stat-row" id="statRow">
-      <div class="stat"><div class="n" id="statStartups">—</div><div class="l">Startups tracked</div></div>
-      <div class="stat"><div class="n" id="statToday">—</div><div class="l">Updates today</div></div>
-      <div class="stat"><div class="n" id="statFunding">—</div><div class="l">Funding items, 7d</div></div>
-      <div class="stat"><div class="n" id="statDays">—</div><div class="l">Days of history</div></div>
+      <div class="stat" style="--accent-color:var(--rust)"><div class="n" id="statStartups">—</div><div class="l">Startups tracked</div></div>
+      <div class="stat" style="--accent-color:var(--ink)"><div class="n" id="statToday">—</div><div class="l">Updates today</div></div>
+      <div class="stat" style="--accent-color:var(--funding)"><div class="n" id="statFunding">—</div><div class="l">Funding items, 7d</div></div>
+      <div class="stat" style="--accent-color:var(--accent)"><div class="n" id="statDays">—</div><div class="l">Days of history</div></div>
     </div>
   </div>
 </div>
@@ -433,6 +454,7 @@
       card.className = "s-card";
       const initial = (s.name||"?").trim().charAt(0).toUpperCase();
       const color = hashColor(s.name||"");
+      card.style.setProperty("--s-color", color);
       card.innerHTML = `
         <div class="s-top">
           <div class="avatar" style="background:${color}">${initial}</div>
