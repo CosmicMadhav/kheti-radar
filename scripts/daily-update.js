@@ -1,32 +1,85 @@
 // Daily AgriTech-India intel fetcher for Kheti Radar.
 // Runs on GitHub Actions (no Claude/Anthropic dependency) — needs only
-// SERPER_KEY and SUPABASE_SERVICE_KEY as repo secrets.
+// SERPER_KEY and SUPABASE_SERVICE_KEY as repo secrets. Subscription-independent:
+// this keeps running on GitHub's free cron infra even if Claude Code access lapses.
 
 const SUPABASE_URL = "https://ykpsiwmbxslwezifqpoq.supabase.co";
 const SERPER_KEY = process.env.SERPER_KEY;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const MAX_ROWS_PER_RUN = 25;
+const PAGES_PER_QUERY = 2;
 
 if (!SERPER_KEY || !SERVICE_KEY) {
   console.error("Missing SERPER_KEY or SUPABASE_SERVICE_KEY env vars.");
   process.exit(1);
 }
 
-const QUERIES_SEARCH = [
-  "site:linkedin.com/posts agritech India funding OR incubation OR partnership",
-  "site:linkedin.com/company agritech India startup",
-  '"#AgriTechIndia" OR "#IndianAgriculture" OR "#AgriTech" India startup',
-  '"#FarmTech" OR "#AgriInnovation" OR "#Kisan" India startup',
-  "site:twitter.com OR site:x.com agritech India funding",
-  "site:startupgrantsindia.com agritech grants funding",
+// ---------- Query matrix: subsectors × intents × site-scoped sources ----------
+// Data-driven so coverage stays broad without hand-writing hundreds of near-duplicate strings.
+
+const SUBSECTORS = [
+  "agritech", "precision farming", "farm mechanization", "agri drone",
+  "dairy tech", "agri fintech", "post-harvest tech", "agri supply chain",
+  "agri biotech", "aquaculture tech", "horticulture tech", "agri marketplace",
+  "climate-smart agriculture", "farm-to-fork", "agri IoT sensors",
+  "crop insurance tech", "soil health tech", "livestock tech",
 ];
 
-const QUERIES_NEWS = [
+const INTENTS = [
+  "funding round", "seed funding", "incubator accelerator cohort",
+  "government partnership", "corporate partnership", "product launch",
+  "policy scheme grant", "acquisition merger", "startup award recognition",
+];
+
+const SITE_SOURCES = [
+  "site:linkedin.com/posts",
+  "site:linkedin.com/company",
+  "site:twitter.com OR site:x.com",
+  "site:startupgrantsindia.com",
+  "site:inc42.com",
+  "site:entrackr.com",
+  "site:yourstory.com",
+  "site:agfundernews.com",
+  "site:startupindia.gov.in",
+];
+
+const HASHTAG_QUERIES = [
+  '"#AgriTechIndia" OR "#IndianAgriculture" OR "#AgriTech" India startup',
+  '"#FarmTech" OR "#AgriInnovation" OR "#Kisan" India startup',
+  '"#PrecisionFarming" OR "#AgriStartup" OR "#SmartFarming" India',
+  '"#AgriFintech" OR "#FarmToFork" OR "#AgTech" India funding',
+];
+
+function buildSearchQueries() {
+  const queries = new Set(HASHTAG_QUERIES);
+  for (const site of SITE_SOURCES) {
+    queries.add(`${site} agritech India funding OR incubation OR partnership`);
+  }
+  // Sample a rotating slice of the subsector × intent grid each day so the
+  // full matrix gets covered over a week without one run making 150+ calls.
+  const dayIndex = new Date().getUTCDate();
+  const grid = [];
+  for (const sub of SUBSECTORS) for (const intent of INTENTS) grid.push([sub, intent]);
+  const sliceSize = 14;
+  const start = (dayIndex * sliceSize) % grid.length;
+  for (let i = 0; i < sliceSize; i++) {
+    const [sub, intent] = grid[(start + i) % grid.length];
+    queries.add(`India ${sub} startup ${intent}`);
+  }
+  return [...queries];
+}
+
+const NEWS_QUERIES = [
   "India agritech startup funding announcement",
   "India agritech incubator accelerator cohort announcement",
   "India agritech government partnership ICAR DPIIT RKVY",
   "India agritech product launch",
   "DPIIT recognised agritech startup",
+  "India agri fintech startup news",
+  "India precision farming startup news",
 ];
+
+// ---------- Categorisation heuristics ----------
 
 const CATEGORY_RULES = [
   [/raises|funding round|invest(ed|s|ment)|series [a-e]\b|crore|\$\s?\d|seed round/i, "funding"],
@@ -57,19 +110,58 @@ function extractAmount(text) {
   return null;
 }
 
-async function serper(endpoint, q) {
+function normalize(str) {
+  return (str || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function wordOverlap(a, b) {
+  const wa = new Set(normalize(a).split(" ").filter((w) => w.length > 3));
+  const wb = new Set(normalize(b).split(" ").filter((w) => w.length > 3));
+  if (!wa.size || !wb.size) return 0;
+  let shared = 0;
+  for (const w of wa) if (wb.has(w)) shared++;
+  return shared / Math.min(wa.size, wb.size);
+}
+
+// ---------- Serper client with retry/backoff ----------
+
+async function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function serperCall(endpoint, body, attempt = 1) {
   const res = await fetch(`https://google.serper.dev/${endpoint}`, {
     method: "POST",
     headers: { "X-API-KEY": SERPER_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ q, gl: "in", num: 15 }),
+    body: JSON.stringify(body),
   });
+  if (res.status === 429 && attempt <= 3) {
+    await sleep(attempt * 1000);
+    return serperCall(endpoint, body, attempt + 1);
+  }
   if (!res.ok) {
-    console.error(`Serper ${endpoint} failed for "${q}": ${res.status}`);
+    console.error(`Serper ${endpoint} failed for "${body.q}": ${res.status}`);
     return [];
   }
   const data = await res.json();
   return [...(data.organic || []), ...(data.news || [])];
 }
+
+async function serper(endpoint, q, pages = 1) {
+  const results = [];
+  for (let page = 1; page <= pages; page++) {
+    const items = await serperCall(endpoint, { q, gl: "in", num: 15, page });
+    results.push(...items);
+    if (!items.length) break;
+  }
+  return results;
+}
+
+// ---------- Supabase REST helpers ----------
 
 async function sbGet(path) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
@@ -96,17 +188,34 @@ async function sbPost(path, rows) {
   }
 }
 
+// ---------- Main ----------
+
 async function main() {
   const today = new Date().toISOString().slice(0, 10);
-  const existing = await sbGet(
-    `daily_updates?select=headline,source_url&update_date=eq.${today}`
-  );
-  const seenUrls = new Set(existing.map((r) => r.source_url).filter(Boolean));
-  const seenHeadlines = new Set(existing.map((r) => (r.headline || "").toLowerCase()));
+  const [existingToday, recentWindow, knownStartups] = await Promise.all([
+    sbGet(`daily_updates?select=headline,source_url&update_date=eq.${today}`),
+    sbGet(
+      `daily_updates?select=headline,source_url&update_date=gte.${new Date(
+        Date.now() - 6 * 86400000
+      )
+        .toISOString()
+        .slice(0, 10)}`
+    ),
+    sbGet(`startups?select=name`),
+  ]);
+
+  const seenUrls = new Set([...existingToday, ...recentWindow].map((r) => r.source_url).filter(Boolean));
+  const seenHeadlines = [...existingToday, ...recentWindow].map((r) => r.headline);
+  const startupNames = knownStartups.map((s) => s.name);
+
+  const searchQueries = buildSearchQueries();
+  console.log(`Running ${searchQueries.length} search queries + ${NEWS_QUERIES.length} news queries (day slice: ${new Date().getUTCDate()}).`);
 
   const candidates = [];
-  for (const q of QUERIES_SEARCH) candidates.push(...(await serper("search", q)));
-  for (const q of QUERIES_NEWS) candidates.push(...(await serper("news", q)));
+  for (const q of searchQueries) candidates.push(...(await serper("search", q, PAGES_PER_QUERY)));
+  for (const q of NEWS_QUERIES) candidates.push(...(await serper("news", q, PAGES_PER_QUERY)));
+
+  console.log(`Fetched ${candidates.length} raw results before filtering.`);
 
   const rows = [];
   const usedUrls = new Set();
@@ -115,22 +224,26 @@ async function main() {
     const title = item.title;
     if (!url || !title) continue;
     if (seenUrls.has(url) || usedUrls.has(url)) continue;
-    if (seenHeadlines.has(title.toLowerCase())) continue;
-    if (!/agri|farm|kisan|krishi/i.test(`${title} ${item.snippet || ""}`)) continue;
+    if (!/agri|farm|kisan|krishi|dairy|aquacultur|horticultur/i.test(`${title} ${item.snippet || ""}`)) continue;
+    if (seenHeadlines.some((h) => wordOverlap(h, title) > 0.6)) continue;
 
     const summary = (item.snippet || "").slice(0, 400) || null;
+    const fullText = `${title} ${summary || ""}`;
+    const relatedStartup = startupNames.find((n) => fullText.toLowerCase().includes(n.toLowerCase())) || null;
+
     rows.push({
       update_date: today,
       headline: title.slice(0, 300),
       summary,
-      category: guessCategory(`${title} ${summary || ""}`),
+      category: guessCategory(fullText),
       source_platform: guessPlatform(url),
       source_url: url,
-      related_startup: null,
-      amount: extractAmount(`${title} ${summary || ""}`),
+      related_startup: relatedStartup,
+      amount: extractAmount(fullText),
     });
     usedUrls.add(url);
-    if (rows.length >= 15) break;
+    seenHeadlines.push(title);
+    if (rows.length >= MAX_ROWS_PER_RUN) break;
   }
 
   await sbPost("daily_updates", rows);
