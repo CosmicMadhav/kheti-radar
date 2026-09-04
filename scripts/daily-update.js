@@ -6,8 +6,8 @@
 const SUPABASE_URL = "https://ykpsiwmbxslwezifqpoq.supabase.co";
 const SERPER_KEY = process.env.SERPER_KEY;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const MAX_ROWS_PER_RUN = 40;
-const PAGES_PER_QUERY = 2;
+const MAX_ROWS_PER_RUN = 60;
+const PAGES_PER_QUERY = 3;
 
 if (!SERPER_KEY || !SERVICE_KEY) {
   console.error("Missing SERPER_KEY or SUPABASE_SERVICE_KEY env vars.");
@@ -43,6 +43,7 @@ const INTENTS = [
 const SITE_SOURCES = [
   "site:linkedin.com/posts",
   "site:linkedin.com/company",
+  "site:linkedin.com/pulse",
   "site:twitter.com OR site:x.com",
   "site:startupgrantsindia.com",
   "site:inc42.com",
@@ -57,6 +58,22 @@ const SITE_SOURCES = [
   "site:moneycontrol.com",
   "site:pib.gov.in",
   "site:nasscom.in",
+  "site:crunchbase.com",
+  "site:tracxn.com",
+  "site:dealstreetasia.com",
+  "site:techcircle.in",
+  "site:forbesindia.com",
+  "site:cnbctv18.com",
+  "site:financialexpress.com",
+  "site:timesofindia.indiatimes.com",
+];
+
+// AgriTech activity concentrates heavily in these states — a rotating
+// state × subsector slice surfaces hyperlocal news the generic queries miss.
+const STATES = [
+  "Punjab", "Haryana", "Maharashtra", "Karnataka", "Madhya Pradesh",
+  "Uttar Pradesh", "Bihar", "Tamil Nadu", "Gujarat", "Rajasthan",
+  "Telangana", "Andhra Pradesh", "West Bengal", "Odisha", "Kerala",
 ];
 
 const HASHTAG_QUERIES = [
@@ -68,22 +85,36 @@ const HASHTAG_QUERIES = [
   '"#RuralFintech" OR "#MandiTech" OR "#ColdChain" India agritech',
 ];
 
+function rotatingSlice(items, dayIndex, sliceSize) {
+  const start = (dayIndex * sliceSize) % items.length;
+  const out = [];
+  for (let i = 0; i < sliceSize; i++) out.push(items[(start + i) % items.length]);
+  return out;
+}
+
 function buildSearchQueries() {
   const queries = new Set(HASHTAG_QUERIES);
   for (const site of SITE_SOURCES) {
     queries.add(`${site} agritech India funding OR incubation OR partnership`);
   }
-  // Sample a rotating slice of the subsector × intent grid each day so the
-  // full matrix gets covered over a week without one run making 150+ calls.
+
   const dayIndex = new Date().getUTCDate();
-  const grid = [];
-  for (const sub of SUBSECTORS) for (const intent of INTENTS) grid.push([sub, intent]);
-  const sliceSize = 20;
-  const start = (dayIndex * sliceSize) % grid.length;
-  for (let i = 0; i < sliceSize; i++) {
-    const [sub, intent] = grid[(start + i) % grid.length];
+
+  // Subsector × intent grid — rotated so the full ~630-combination matrix
+  // gets covered over about a month without one run making hundreds of calls.
+  const subIntentGrid = [];
+  for (const sub of SUBSECTORS) for (const intent of INTENTS) subIntentGrid.push([sub, intent]);
+  for (const [sub, intent] of rotatingSlice(subIntentGrid, dayIndex, 20)) {
     queries.add(`India ${sub} startup ${intent}`);
   }
+
+  // State × subsector grid — surfaces hyperlocal news the national queries miss.
+  const stateSubGrid = [];
+  for (const state of STATES) for (const sub of SUBSECTORS) stateSubGrid.push([state, sub]);
+  for (const [state, sub] of rotatingSlice(stateSubGrid, dayIndex, 10)) {
+    queries.add(`${state} agritech startup ${sub} funding OR launch OR partnership`);
+  }
+
   return [...queries];
 }
 
