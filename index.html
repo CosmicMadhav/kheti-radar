@@ -1,0 +1,380 @@
+<title>Kheti Radar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#F5F6EC;
+    --surface:#FFFFFF;
+    --surface-2:#EEEFE1;
+    --ink:#1C2A1E;
+    --ink-muted:#5C6B5C;
+    --border:#DAD8C4;
+    --accent:#C98A1B;
+    --accent-ink:#4A3308;
+    --leaf:#2F6D4F;
+    --funding:#2F8F5C;
+    --incubation:#2E7C93;
+    --partnership:#7A5CA6;
+    --product:#B58A1B;
+    --policy:#5C6B7A;
+    --buzz:#B5573A;
+    --shadow: 0 1px 2px rgba(28,42,30,0.06), 0 4px 14px rgba(28,42,30,0.05);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#10140F;
+      --surface:#171C13;
+      --surface-2:#1D231A;
+      --ink:#EDEAD9;
+      --ink-muted:#9AA592;
+      --border:#2B3226;
+      --accent:#E0A83E;
+      --accent-ink:#2A1D06;
+      --leaf:#5FAE82;
+      --funding:#5FAE82;
+      --incubation:#6BB2CB;
+      --partnership:#B39BDE;
+      --product:#E0A83E;
+      --policy:#9AA7B4;
+      --buzz:#D98B6F;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#10140F;
+    --surface:#171C13;
+    --surface-2:#1D231A;
+    --ink:#EDEAD9;
+    --ink-muted:#9AA592;
+    --border:#2B3226;
+    --accent:#E0A83E;
+    --accent-ink:#2A1D06;
+    --leaf:#5FAE82;
+    --funding:#5FAE82;
+    --incubation:#6BB2CB;
+    --partnership:#B39BDE;
+    --product:#E0A83E;
+    --policy:#9AA7B4;
+    --buzz:#D98B6F;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Source Sans 3", system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px; margin:0 auto; padding:28px 20px 80px;}
+  header.top{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+    padding-bottom:20px; margin-bottom:22px; border-bottom:1px solid var(--border);
+    flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand svg{width:34px; height:34px; flex:none;}
+  h1{
+    font-family:"Fraunces", serif; font-weight:700; font-size:1.7rem; margin:0;
+    letter-spacing:-0.01em; text-wrap:balance;
+  }
+  .sub{color:var(--ink-muted); font-size:0.85rem; margin-top:2px;}
+  .status{
+    display:flex; align-items:center; gap:8px; font-family:"IBM Plex Mono", monospace;
+    font-size:0.72rem; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--funding); flex:none;}
+  .dot.off{background:var(--buzz);}
+  .dot.pending{background:var(--product); animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+
+  section{margin-bottom:40px;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; flex-wrap:wrap;}
+  .section-head h2{font-family:"Fraunces", serif; font-size:1.15rem; font-weight:600; margin:0;}
+  .section-head .count{font-family:"IBM Plex Mono", monospace; font-size:0.75rem; color:var(--ink-muted);}
+
+  .day-ribbon{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:16px;}
+  .day-chip{
+    flex:none; font-family:"IBM Plex Mono", monospace; font-size:0.75rem;
+    padding:8px 13px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink-muted); cursor:pointer;
+    white-space:nowrap; transition:background .15s, color .15s, border-color .15s;
+  }
+  .day-chip:hover{border-color:var(--accent);}
+  .day-chip.active{
+    background:var(--ink); color:var(--bg); border-color:var(--ink);
+  }
+  .day-chip .n{color:inherit; opacity:0.6; margin-left:6px;}
+
+  .cat-filters{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:16px;}
+  .cat-chip{
+    font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;
+    padding:5px 10px; border-radius:99px; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink-muted); cursor:pointer;
+  }
+  .cat-chip[data-on="1"]{color:#fff; border-color:transparent;}
+
+  .feed{display:flex; flex-direction:column; gap:10px;}
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    box-shadow:var(--shadow); padding:14px 16px 14px 14px; display:flex; gap:12px;
+  }
+  .stripe{width:4px; border-radius:4px; flex:none; align-self:stretch;}
+  .card-body{flex:1; min-width:0;}
+  .card-meta{
+    display:flex; align-items:center; gap:8px; font-family:"IBM Plex Mono", monospace;
+    font-size:0.7rem; color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:5px; flex-wrap:wrap;
+  }
+  .card-meta .cat{font-weight:600;}
+  .card h3{font-family:"Fraunces", serif; font-size:1.02rem; font-weight:600; margin:0 0 4px; text-wrap:balance;}
+  .card p{margin:0; color:var(--ink-muted); font-size:0.88rem; line-height:1.5;}
+  .card a.src{font-size:0.78rem; color:var(--leaf); text-decoration:none; font-weight:600;}
+  .card a.src:hover{text-decoration:underline;}
+  .amount{font-family:"IBM Plex Mono", monospace; color:var(--accent-ink); background:var(--accent); padding:1px 7px; border-radius:5px; font-size:0.72rem; font-weight:600;}
+  :root[data-theme="dark"] .amount, @media (prefers-color-scheme:dark){ .amount{color:var(--accent-ink);} }
+
+  .empty{color:var(--ink-muted); font-size:0.9rem; padding:20px 4px; font-style:italic;}
+
+  .toolbar{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+  input#search{
+    flex:1; min-width:200px; padding:9px 12px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface); color:var(--ink); font-family:"Source Sans 3", sans-serif; font-size:0.88rem;
+  }
+  input#search:focus{outline:2px solid var(--accent); outline-offset:1px;}
+
+  .dir-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:12px;}
+  .s-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow);
+    padding:14px; display:flex; flex-direction:column; gap:8px;
+  }
+  .s-card h3{font-family:"Fraunces", serif; font-size:1rem; font-weight:600; margin:0;}
+  .s-card .tagline{font-size:0.82rem; color:var(--ink-muted); margin:0; line-height:1.4;}
+  .tags{display:flex; gap:5px; flex-wrap:wrap;}
+  .tag{font-size:0.66rem; text-transform:uppercase; letter-spacing:0.03em; background:var(--surface-2); color:var(--ink-muted); padding:3px 7px; border-radius:5px;}
+  .s-meta{font-family:"IBM Plex Mono", monospace; font-size:0.7rem; color:var(--ink-muted);}
+  .s-links{display:flex; gap:8px; margin-top:auto; padding-top:6px;}
+  .s-links a{
+    flex:1; text-align:center; font-size:0.78rem; font-weight:600; text-decoration:none;
+    padding:7px 8px; border-radius:7px; border:1px solid var(--border); color:var(--ink);
+  }
+  .s-links a.web{background:var(--ink); color:var(--bg); border-color:var(--ink);}
+  .s-links a.li:hover{border-color:var(--leaf); color:var(--leaf);}
+
+  footer{margin-top:50px; padding-top:16px; border-top:1px solid var(--border); color:var(--ink-muted); font-size:0.76rem; font-family:"IBM Plex Mono", monospace;}
+
+  @media (prefers-reduced-motion: reduce){ .dot.pending{animation:none;} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 21c-4-2-6-6-6-10a6 6 0 0 1 6-6c0 5-1 9-4 12" stroke="var(--leaf)" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M12 21c4-2 6-6 6-10a6 6 0 0 0-6-6c0 5 1 9 4 12" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="12" cy="21" r="1.3" fill="var(--ink)"/>
+      </svg>
+      <div>
+        <h1>Kheti Radar</h1>
+        <div class="sub">India AgriTech intel — funding, incubation &amp; partnerships, daily</div>
+      </div>
+    </div>
+    <div class="status" id="status"><span class="dot pending" id="statusDot"></span><span id="statusText">connecting to supabase…</span></div>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <h2>Daily feed</h2>
+      <span class="count" id="feedCount"></span>
+    </div>
+    <div class="day-ribbon" id="dayRibbon"></div>
+    <div class="cat-filters" id="catFilters"></div>
+    <div class="feed" id="feed"><div class="empty">Loading today's updates…</div></div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Startup directory</h2>
+      <span class="count" id="dirCount"></span>
+    </div>
+    <div class="toolbar">
+      <input id="search" type="text" placeholder="Search by name, city, or category — e.g. dairy, Pune, fintech">
+    </div>
+    <div class="dir-grid" id="dirGrid"><div class="empty">Loading startups…</div></div>
+  </section>
+
+  <footer>kheti radar · sourced from public news, LinkedIn &amp; startup announcements · refreshed daily · data via Supabase</footer>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://ykpsiwmbxslwezifqpoq.supabase.co";
+  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlrcHNpd21ieHNsd2V6aWZxcG9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4OTEwNjYsImV4cCI6MjEwMzQ2NzA2Nn0.OwlDVH6ATHlJ6rtjDxSvu8scdpPYEJv9rpSuX9ARU20";
+
+  const CATS = {
+    funding:{label:"Funding", color:"var(--funding)"},
+    incubation:{label:"Incubation", color:"var(--incubation)"},
+    partnership:{label:"Partnership", color:"var(--partnership)"},
+    "product-launch":{label:"Product", color:"var(--product)"},
+    policy:{label:"Policy", color:"var(--policy)"},
+    acquisition:{label:"Acquisition", color:"var(--leaf)"},
+    award:{label:"Award", color:"var(--accent)"},
+    buzz:{label:"Buzz", color:"var(--buzz)"}
+  };
+
+  let allUpdates = [];
+  let allStartups = [];
+  let activeDate = null;
+  let activeCats = new Set();
+
+  async function sb(path){
+    const res = await fetch(SUPABASE_URL + "/rest/v1/" + path, {
+      headers: { apikey: SUPABASE_ANON, Authorization: "Bearer " + SUPABASE_ANON }
+    });
+    if(!res.ok) throw new Error("supabase " + res.status);
+    return res.json();
+  }
+
+  function fmtDate(d){
+    const dt = new Date(d + "T00:00:00");
+    const today = new Date(); today.setHours(0,0,0,0);
+    const diffDays = Math.round((today - dt) / 86400000);
+    const label = dt.toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+    if(diffDays === 0) return {short:"Today", full:label};
+    if(diffDays === 1) return {short:"Yesterday", full:label};
+    return {short:label, full:label};
+  }
+
+  function renderDayRibbon(){
+    const dates = [...new Set(allUpdates.map(u=>u.update_date))].sort((a,b)=> b.localeCompare(a));
+    const ribbon = document.getElementById("dayRibbon");
+    ribbon.innerHTML = "";
+    dates.forEach(d=>{
+      const n = allUpdates.filter(u=>u.update_date===d).length;
+      const f = fmtDate(d);
+      const chip = document.createElement("button");
+      chip.className = "day-chip" + (d===activeDate ? " active":"");
+      chip.innerHTML = f.short + '<span class="n">' + n + '</span>';
+      chip.onclick = () => { activeDate = d; renderDayRibbon(); renderFeed(); };
+      ribbon.appendChild(chip);
+    });
+    if(dates.length && !activeDate) activeDate = dates[0];
+  }
+
+  function renderCatFilters(){
+    const wrap = document.getElementById("catFilters");
+    wrap.innerHTML = "";
+    const present = [...new Set(allUpdates.map(u=>u.category))];
+    present.forEach(c=>{
+      const meta = CATS[c] || {label:c, color:"var(--ink-muted)"};
+      const chip = document.createElement("button");
+      chip.className = "cat-chip";
+      chip.textContent = meta.label;
+      const on = activeCats.has(c);
+      chip.dataset.on = on ? "1":"0";
+      chip.style.background = on ? meta.color : "var(--surface)";
+      chip.style.color = on ? "#fff" : "var(--ink-muted)";
+      chip.style.borderColor = on ? "transparent" : "var(--border)";
+      chip.onclick = () => {
+        if(activeCats.has(c)) activeCats.delete(c); else activeCats.add(c);
+        renderCatFilters(); renderFeed();
+      };
+      wrap.appendChild(chip);
+    });
+  }
+
+  function renderFeed(){
+    const feed = document.getElementById("feed");
+    let rows = allUpdates.filter(u => u.update_date === activeDate);
+    if(activeCats.size) rows = rows.filter(u => activeCats.has(u.category));
+    document.getElementById("feedCount").textContent = rows.length + (rows.length===1?" update":" updates");
+    if(!rows.length){
+      feed.innerHTML = '<div class="empty">No updates for this day/filter yet.</div>';
+      return;
+    }
+    feed.innerHTML = "";
+    rows.forEach(u=>{
+      const meta = CATS[u.category] || {label:u.category, color:"var(--ink-muted)"};
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="stripe" style="background:${meta.color}"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="cat" style="color:${meta.color}">${meta.label}</span>
+            <span>·</span>
+            <span>${u.source_platform || "source"}</span>
+            ${u.amount ? `<span class="amount">${u.amount}</span>` : ""}
+          </div>
+          <h3>${u.headline}</h3>
+          <p>${u.summary || ""}</p>
+          ${u.source_url ? `<div style="margin-top:8px;"><a class="src" href="${u.source_url}" target="_blank" rel="noopener">Read source →</a></div>` : ""}
+        </div>`;
+      feed.appendChild(card);
+    });
+  }
+
+  function renderDirectory(filterText){
+    const grid = document.getElementById("dirGrid");
+    const q = (filterText||"").trim().toLowerCase();
+    let rows = allStartups;
+    if(q){
+      rows = rows.filter(s =>
+        (s.name||"").toLowerCase().includes(q) ||
+        (s.city||"").toLowerCase().includes(q) ||
+        (s.state||"").toLowerCase().includes(q) ||
+        (s.category||[]).some(c=>c.toLowerCase().includes(q)) ||
+        (s.tagline||"").toLowerCase().includes(q)
+      );
+    }
+    document.getElementById("dirCount").textContent = rows.length + (rows.length===1?" startup":" startups");
+    if(!rows.length){
+      grid.innerHTML = '<div class="empty">No startups match that search.</div>';
+      return;
+    }
+    grid.innerHTML = "";
+    rows.forEach(s=>{
+      const card = document.createElement("div");
+      card.className = "s-card";
+      card.innerHTML = `
+        <h3>${s.name}</h3>
+        <p class="tagline">${s.tagline || ""}</p>
+        <div class="tags">${(s.category||[]).map(c=>`<span class="tag">${c}</span>`).join("")}</div>
+        <div class="s-meta">${[s.city, s.state].filter(Boolean).join(", ")}${s.founded_year ? " · est. "+s.founded_year : ""}${s.funding_stage ? " · "+s.funding_stage : ""}</div>
+        <div class="s-links">
+          ${s.website_url ? `<a class="web" href="${s.website_url}" target="_blank" rel="noopener">Website</a>` : ""}
+          ${s.linkedin_url ? `<a class="li" href="${s.linkedin_url}" target="_blank" rel="noopener">LinkedIn</a>` : ""}
+        </div>`;
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById("search").addEventListener("input", (e)=> renderDirectory(e.target.value));
+
+  async function boot(){
+    const dot = document.getElementById("statusDot");
+    const txt = document.getElementById("statusText");
+    try{
+      const [updates, startups] = await Promise.all([
+        sb("daily_updates?select=*&order=update_date.desc,created_at.desc"),
+        sb("startups?select=*&order=name.asc")
+      ]);
+      allUpdates = updates;
+      allStartups = startups;
+      dot.className = "dot";
+      const now = new Date().toLocaleTimeString("en-IN", {hour:"2-digit", minute:"2-digit"});
+      txt.textContent = "live · synced " + now;
+      renderDayRibbon();
+      renderCatFilters();
+      renderFeed();
+      renderDirectory("");
+    }catch(err){
+      dot.className = "dot off";
+      txt.textContent = "connection failed";
+      document.getElementById("feed").innerHTML = '<div class="empty">Could not reach Supabase. Check connection and reload.</div>';
+      document.getElementById("dirGrid").innerHTML = '<div class="empty">Could not reach Supabase. Check connection and reload.</div>';
+      console.error(err);
+    }
+  }
+  boot();
+</script>
