@@ -6,7 +6,7 @@
 const SUPABASE_URL = "https://ykpsiwmbxslwezifqpoq.supabase.co";
 const SERPER_KEY = process.env.SERPER_KEY;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const MAX_ROWS_PER_RUN = 25;
+const MAX_ROWS_PER_RUN = 40;
 const PAGES_PER_QUERY = 2;
 
 if (!SERPER_KEY || !SERVICE_KEY) {
@@ -23,12 +23,21 @@ const SUBSECTORS = [
   "agri biotech", "aquaculture tech", "horticulture tech", "agri marketplace",
   "climate-smart agriculture", "farm-to-fork", "agri IoT sensors",
   "crop insurance tech", "soil health tech", "livestock tech",
+  "vertical farming", "controlled environment agriculture", "agri robotics",
+  "seed tech", "biofertilizer", "biopesticide", "cold chain logistics",
+  "warehouse tech", "electric tractor", "water management tech",
+  "weather intelligence agri", "blockchain traceability agri",
+  "farm labor tech", "agri export tech", "rural fintech", "kisan credit tech",
+  "mandi digitisation", "crop residue management", "agri e-commerce",
 ];
 
 const INTENTS = [
-  "funding round", "seed funding", "incubator accelerator cohort",
-  "government partnership", "corporate partnership", "product launch",
-  "policy scheme grant", "acquisition merger", "startup award recognition",
+  "funding round", "seed funding", "pre-seed funding", "series A funding",
+  "incubator accelerator cohort", "government partnership",
+  "corporate partnership", "CSR initiative", "research collaboration",
+  "product launch", "pilot program", "policy scheme grant",
+  "state government scheme", "budget allocation", "acquisition merger",
+  "startup award recognition", "MoU signed", "IPO",
 ];
 
 const SITE_SOURCES = [
@@ -41,6 +50,13 @@ const SITE_SOURCES = [
   "site:yourstory.com",
   "site:agfundernews.com",
   "site:startupindia.gov.in",
+  "site:vccircle.com",
+  "site:livemint.com",
+  "site:economictimes.indiatimes.com",
+  "site:business-standard.com",
+  "site:moneycontrol.com",
+  "site:pib.gov.in",
+  "site:nasscom.in",
 ];
 
 const HASHTAG_QUERIES = [
@@ -48,6 +64,8 @@ const HASHTAG_QUERIES = [
   '"#FarmTech" OR "#AgriInnovation" OR "#Kisan" India startup',
   '"#PrecisionFarming" OR "#AgriStartup" OR "#SmartFarming" India',
   '"#AgriFintech" OR "#FarmToFork" OR "#AgTech" India funding',
+  '"#VerticalFarming" OR "#AgriRobotics" OR "#ClimateSmartAg" India',
+  '"#RuralFintech" OR "#MandiTech" OR "#ColdChain" India agritech',
 ];
 
 function buildSearchQueries() {
@@ -60,7 +78,7 @@ function buildSearchQueries() {
   const dayIndex = new Date().getUTCDate();
   const grid = [];
   for (const sub of SUBSECTORS) for (const intent of INTENTS) grid.push([sub, intent]);
-  const sliceSize = 14;
+  const sliceSize = 20;
   const start = (dayIndex * sliceSize) % grid.length;
   for (let i = 0; i < sliceSize; i++) {
     const [sub, intent] = grid[(start + i) % grid.length];
@@ -77,6 +95,24 @@ const NEWS_QUERIES = [
   "DPIIT recognised agritech startup",
   "India agri fintech startup news",
   "India precision farming startup news",
+  "India dairy tech startup news",
+  "India agri drone startup news",
+  "India vertical farming startup news",
+  "India agri biotech startup news",
+  "India cold chain logistics startup news",
+];
+
+// Free supplementary source: Google News RSS needs no API key/quota, so it
+// widens coverage without spending Serper credits.
+const GNEWS_QUERIES = [
+  "India agritech startup",
+  "India agritech funding",
+  "India agri fintech",
+  "India precision farming startup",
+  "India dairy technology startup",
+  "India agri drone company",
+  "India vertical farming startup",
+  "India agri supply chain startup",
 ];
 
 // ---------- Categorisation heuristics ----------
@@ -161,6 +197,50 @@ async function serper(endpoint, q, pages = 1) {
   return results;
 }
 
+// ---------- Google News RSS (free, no key/quota — widens coverage) ----------
+
+function decodeEntities(str) {
+  return str
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+async function googleNews(q) {
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-IN&gl=IN&ceid=IN:en`;
+  let res;
+  try {
+    res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+  } catch (err) {
+    console.error(`Google News RSS fetch failed for "${q}": ${err.message}`);
+    return [];
+  }
+  if (!res.ok) {
+    console.error(`Google News RSS failed for "${q}": ${res.status}`);
+    return [];
+  }
+  const xml = await res.text();
+  const items = [];
+  const itemRe = /<item>([\s\S]*?)<\/item>/g;
+  let m;
+  while ((m = itemRe.exec(xml)) && items.length < 15) {
+    const block = m[1];
+    const title = /<title>([\s\S]*?)<\/title>/.exec(block)?.[1];
+    const link = /<link>([\s\S]*?)<\/link>/.exec(block)?.[1];
+    const desc = /<description>([\s\S]*?)<\/description>/.exec(block)?.[1];
+    if (title && link) {
+      items.push({
+        title: decodeEntities(title.replace(/<!\[CDATA\[|\]\]>/g, "").trim()),
+        link: link.trim(),
+        snippet: desc ? decodeEntities(desc.replace(/<!\[CDATA\[|\]\]>|<[^>]+>/g, "").trim()) : "",
+      });
+    }
+  }
+  return items;
+}
+
 // ---------- Supabase REST helpers ----------
 
 async function sbGet(path) {
@@ -209,11 +289,14 @@ async function main() {
   const startupNames = knownStartups.map((s) => s.name);
 
   const searchQueries = buildSearchQueries();
-  console.log(`Running ${searchQueries.length} search queries + ${NEWS_QUERIES.length} news queries (day slice: ${new Date().getUTCDate()}).`);
+  console.log(
+    `Running ${searchQueries.length} Serper search queries + ${NEWS_QUERIES.length} Serper news queries + ${GNEWS_QUERIES.length} Google News RSS queries (day slice: ${new Date().getUTCDate()}).`
+  );
 
   const candidates = [];
   for (const q of searchQueries) candidates.push(...(await serper("search", q, PAGES_PER_QUERY)));
   for (const q of NEWS_QUERIES) candidates.push(...(await serper("news", q, PAGES_PER_QUERY)));
+  for (const q of GNEWS_QUERIES) candidates.push(...(await googleNews(q)));
 
   console.log(`Fetched ${candidates.length} raw results before filtering.`);
 
