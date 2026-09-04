@@ -1,242 +1,212 @@
 <title>Kheti Radar</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Yeseva+One&family=Mukta:wght@300;400;500;600;700;800&display=swap">
 <style>
   :root{
-    --bg:#FAF7EF;
-    --bg-2:#F2EBD9;
-    --surface:#FFFFFF;
-    --surface-2:#F3EEDE;
-    --ink:#251D13;
-    --ink-muted:#7C7160;
-    --ink-faint:#A0967F;
-    --border:#EAE1CB;
-    --border-soft:#F0E9D8;
-    --accent:#C2841A;
-    --accent-soft:#F3DFB0;
-    --accent-ink:#4A3308;
-    --rust:#B5573A;
-    --rust-soft:#F3DDD1;
-    --funding:#2E6B93;
-    --incubation:#6B4FA0;
-    --partnership:#B5573A;
-    --product:#C2841A;
-    --policy:#5C6B7A;
-    --acquisition:#8A5A3C;
-    --award:#A9862A;
-    --buzz:#A23E3E;
-    --shadow-sm: 0 1px 2px rgba(37,29,19,0.05);
-    --shadow: 0 2px 4px rgba(37,29,19,0.05), 0 10px 24px rgba(37,29,19,0.06);
-    --shadow-lg: 0 8px 16px rgba(37,29,19,0.08), 0 24px 48px rgba(37,29,19,0.10);
-    color-scheme: light;
+    --board:#173229;
+    --board-2:#1E3D31;
+    --board-ink:#F4E8C8;
+    --board-ink-dim:#B9C4B0;
+    --board-line:rgba(244,232,200,0.16);
+    --paper:#F7F1E1;
+    --card:#FCF8EC;
+    --ink:#241B0E;
+    --ink-muted:#6E6146;
+    --ink-faint:#9C8F6E;
+    --line:#DED0A6;
+    --line-soft:#E8DDBA;
+    --marigold:#E2A72E;
+    --marigold-soft:#F4DFAB;
+    --marigold-ink:#4A3308;
+    --sindoor:#B23A2E;
+    --funding:#3D6B4F;
+    --incubation:#2E6C8E;
+    --partnership:#7A4B7E;
+    --product:#A8631A;
+    --policy:#5B6B4F;
+    --acquisition:#6B4A2B;
+    --award:#9C7A0E;
+    --buzz:#B23A2E;
+    --shadow-sm:0 1px 2px rgba(36,27,14,0.06);
+    --shadow:0 2px 6px rgba(36,27,14,0.07), 0 10px 22px rgba(36,27,14,0.07);
+    color-scheme:light;
   }
   *{box-sizing:border-box;}
   body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font-family:"Source Sans 3", system-ui, sans-serif; -webkit-font-smoothing:antialiased;
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Mukta", system-ui, sans-serif; -webkit-font-smoothing:antialiased;
   }
-  ::selection{ background:var(--accent-soft); }
-  .wrap{max-width:1120px; margin:0 auto; padding:0 22px 90px;}
+  ::selection{ background:var(--marigold-soft); }
+  .wrap{max-width:1080px; margin:0 auto; padding:0 22px 90px;}
+  h1,h2,h3{font-family:"Yeseva One", "Mukta", serif;}
 
-  /* ---------- Hero ---------- */
-  .hero{
-    position:relative;
-    background:
-      radial-gradient(720px 260px at 88% -40px, color-mix(in srgb, var(--accent) 20%, transparent), transparent 70%),
-      repeating-linear-gradient(115deg, color-mix(in srgb, var(--rust) 5%, transparent) 0 2px, transparent 2px 34px),
-      linear-gradient(180deg, var(--bg-2), var(--bg));
-    border-bottom:1px solid var(--border);
-    padding:34px 22px 30px;
-    margin:0 0 38px;
-    overflow:hidden;
+  /* ---------- Board (header) ---------- */
+  .board{
+    background:linear-gradient(175deg, var(--board-2), var(--board));
+    color:var(--board-ink);
+    padding:30px 22px 0;
   }
-  .hero::after{
-    content:"";
-    position:absolute; left:0; right:0; bottom:0; height:3px;
-    background:repeating-linear-gradient(90deg, var(--rust) 0 18px, var(--accent) 18px 36px);
-    opacity:0.55;
-  }
-  .hero-inner{max-width:1120px; margin:0 auto;}
-  .top-row{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:22px;}
+  .board-inner{max-width:1080px; margin:0 auto;}
+  .board-top{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:26px;}
   .brand{display:flex; align-items:center; gap:12px;}
-  .brand-mark{
-    width:40px; height:40px; border-radius:11px; flex:none; display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(155deg, var(--rust), var(--accent));
-    box-shadow:var(--shadow-sm);
+  .stamp{
+    width:46px; height:46px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--marigold); color:var(--marigold); transform:rotate(-7deg);
+    font-family:"Mukta", sans-serif; font-weight:700; font-size:1.05rem;
   }
-  .brand-mark svg{width:22px; height:22px;}
-  .brand-name{font-family:"Fraunces", serif; font-weight:700; font-size:1.15rem; letter-spacing:-0.01em; line-height:1;}
-  .brand-tag{font-family:"IBM Plex Mono", monospace; font-size:0.68rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.07em; margin-top:3px;}
+  .brand-name{font-family:"Yeseva One", serif; font-size:1.2rem; letter-spacing:0.01em; line-height:1; color:var(--board-ink);}
+  .brand-tag{font-family:"Mukta", sans-serif; font-size:0.72rem; color:var(--board-ink-dim); margin-top:4px;}
 
   .status-pill{
-    display:flex; align-items:center; gap:7px; font-family:"IBM Plex Mono", monospace; font-size:0.72rem;
-    color:var(--ink-muted); background:var(--surface); border:1px solid var(--border); border-radius:99px;
-    padding:6px 12px 6px 9px; box-shadow:var(--shadow-sm);
+    display:flex; align-items:center; gap:7px; font-size:0.78rem; color:var(--board-ink-dim);
+    border:1px solid var(--board-line); border-radius:99px; padding:6px 13px 6px 10px;
   }
-  .dot{width:7px; height:7px; border-radius:50%; background:var(--funding); flex:none;}
-  .dot.off{background:var(--buzz);}
-  .dot.pending{background:var(--product); animation:pulse 1.4s ease-in-out infinite;}
+  .dotx{width:7px; height:7px; border-radius:50%; background:var(--funding); flex:none;}
+  .dotx.off{background:var(--sindoor);}
+  .dotx.pending{background:var(--marigold); animation:pulse 1.4s ease-in-out infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
 
   h1.headline{
-    font-family:"Fraunces", serif; font-weight:800; font-size:clamp(1.8rem, 3.2vw, 2.5rem);
-    margin:0 0 8px; letter-spacing:-0.02em; text-wrap:balance; max-width:16ch;
+    font-weight:400; font-size:clamp(1.7rem, 3vw, 2.3rem); margin:0 0 10px;
+    letter-spacing:0.005em; text-wrap:balance; max-width:20ch; color:var(--board-ink);
   }
-  h1.headline em{ font-style:italic; color:var(--rust); }
-  .hero-sub{ color:var(--ink-muted); font-size:1rem; max-width:52ch; line-height:1.55; margin:0 0 24px; }
+  .board-sub{ color:var(--board-ink-dim); font-size:0.98rem; max-width:50ch; line-height:1.55; margin:0 0 26px; }
 
-  .stat-row{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:10px;}
-  .stat{
-    position:relative; background:var(--surface); border:1px solid var(--border); border-radius:12px;
-    padding:15px 16px 14px; box-shadow:var(--shadow-sm); overflow:hidden;
+  .board-stats{display:flex; flex-wrap:wrap; gap:0; border-top:1px solid var(--board-line);}
+  .bstat{
+    flex:1; min-width:130px; padding:16px 20px 20px 0; border-right:1px solid var(--board-line);
   }
-  .stat::before{
-    content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent-color, var(--accent));
-  }
-  .stat .n{font-family:"Fraunces", serif; font-weight:700; font-size:1.7rem; font-variant-numeric:tabular-nums; line-height:1; color:var(--accent-color, var(--ink));}
-  .stat .l{font-size:0.72rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.05em; margin-top:6px;}
+  .bstat:last-child{border-right:none;}
+  .bstat .n{font-family:"Yeseva One", serif; font-size:2rem; font-variant-numeric:tabular-nums; line-height:1; color:var(--n-color, var(--board-ink));}
+  .bstat .l{font-size:0.78rem; color:var(--board-ink-dim); margin-top:6px;}
 
   /* ---------- Sections ---------- */
-  section{margin-bottom:44px;}
-  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:16px; flex-wrap:wrap;}
-  .section-head h2{font-family:"Fraunces", serif; font-size:1.3rem; font-weight:700; margin:0; letter-spacing:-0.01em;}
-  .section-head .eyebrow{font-family:"IBM Plex Mono", monospace; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--rust); display:block; margin-bottom:4px;}
-  .section-head .count{font-family:"IBM Plex Mono", monospace; font-size:0.75rem; color:var(--ink-faint);}
+  section{margin-top:44px;}
+  .section-head{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap; border-bottom:3px double var(--line); padding-bottom:10px;}
+  .section-head h2{font-size:1.4rem; font-weight:400; margin:0; color:var(--ink);}
+  .section-head .count{font-size:0.85rem; color:var(--ink-faint);}
 
-  .day-ribbon{display:flex; gap:6px; overflow-x:auto; padding:3px 3px 10px; margin-bottom:6px;}
+  .day-ribbon{display:flex; gap:5px; overflow-x:auto; padding:3px 3px 12px; margin-bottom:4px;}
   .day-chip{
-    flex:none; font-family:"IBM Plex Mono", monospace; font-size:0.76rem;
-    padding:9px 14px; border-radius:10px; border:1px solid var(--border);
-    background:var(--surface); color:var(--ink-muted); cursor:pointer;
-    white-space:nowrap; transition:background .15s, color .15s, border-color .15s, transform .1s;
+    flex:none; font-size:0.85rem; font-family:"Mukta", sans-serif; font-weight:500;
+    padding:8px 15px; border-radius:7px 7px 0 0; border:1px solid var(--line); border-bottom:none;
+    background:var(--card); color:var(--ink-muted); cursor:pointer; white-space:nowrap;
+    transition:background .15s, color .15s;
   }
-  .day-chip:hover{border-color:var(--accent); transform:translateY(-1px);}
-  .day-chip.active{ background:var(--ink); color:var(--bg); border-color:var(--ink); }
-  .day-chip .n{opacity:0.6; margin-left:7px;}
+  .day-chip:hover{color:var(--ink);}
+  .day-chip.active{ background:var(--board); color:var(--board-ink); border-color:var(--board); }
+  .day-chip .n{opacity:0.65; margin-left:6px;}
 
-  .cat-filters{display:flex; gap:7px; flex-wrap:wrap; margin-bottom:20px;}
+  .cat-filters{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px;}
   .cat-chip{
-    display:inline-flex; align-items:center; gap:6px;
-    font-size:0.73rem; font-weight:600; padding:6px 12px 6px 10px; border-radius:99px;
-    border:1px solid var(--border); background:var(--surface); color:var(--ink-muted); cursor:pointer;
-    transition:border-color .15s, color .15s;
+    display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:500;
+    padding:5px 12px; border-radius:99px; border:1.5px solid var(--line); background:var(--card);
+    color:var(--ink-muted); cursor:pointer; transition:border-color .15s, color .15s;
   }
   .cat-chip .sw{width:7px; height:7px; border-radius:50%; flex:none;}
-  .cat-chip[data-on="1"]{ color:var(--ink); border-color:currentColor; }
+  .cat-chip[data-on="1"]{ color:var(--ink); border-color:currentColor; font-weight:600; }
 
-  .feed{display:flex; flex-direction:column; gap:26px;}
-  .feed-group-head{
-    display:flex; align-items:center; gap:9px; font-weight:700; font-size:0.86rem;
-    text-transform:uppercase; letter-spacing:0.05em; margin-bottom:14px;
-    padding:9px 14px; border-radius:9px; background:var(--surface-2);
+  /* Ledger register feed */
+  .feed{display:flex; flex-direction:column; gap:30px;}
+  .ledger-head{
+    display:flex; align-items:center; gap:10px; font-family:"Yeseva One", serif; font-size:1.05rem;
+    margin-bottom:6px; padding-bottom:8px; border-bottom:2px solid var(--cat-color, var(--line));
   }
-  .feed-group-head .sw{width:9px; height:9px; border-radius:3px; flex:none;}
-  .feed-group-count{
-    margin-left:auto; font-family:"IBM Plex Mono", monospace; font-weight:500;
-    color:var(--ink-faint); text-transform:none; letter-spacing:0; background:var(--surface-2);
-    padding:2px 9px; border-radius:99px; font-size:0.75rem;
+  .ledger-head .sw{width:9px; height:9px; border-radius:2px; flex:none; background:var(--cat-color);}
+  .ledger-head .n{margin-left:auto; font-family:"Mukta",sans-serif; font-size:0.82rem; color:var(--ink-faint); font-weight:500;}
+  .ledger-rows{display:flex; flex-direction:column;}
+  .ledger-row{
+    display:flex; gap:16px; padding:16px 4px; border-bottom:1px solid var(--line-soft);
+    align-items:flex-start;
   }
-  .feed-group-list{display:flex; flex-direction:column; gap:10px;}
-  .startup-chip{
-    background:var(--surface-2); color:var(--ink-muted); padding:1px 8px; border-radius:6px;
-    font-weight:600; font-size:0.68rem; text-transform:none; letter-spacing:0;
+  .ledger-row:last-child{border-bottom:none;}
+  .row-stamp{
+    flex:none; width:52px; height:52px; border-radius:50%; border:2px solid var(--cat-color);
+    color:var(--cat-color); display:flex; align-items:center; justify-content:center; text-align:center;
+    font-size:0.62rem; font-weight:700; line-height:1.15; text-transform:capitalize;
+    transform:rotate(-4deg); padding:2px;
   }
-  .card{
-    background:var(--surface); border:1px solid var(--border); border-radius:14px;
-    box-shadow:var(--shadow); padding:18px 20px 18px 16px; display:flex; gap:14px;
-    transition:box-shadow .15s, transform .15s;
+  .row-body{flex:1; min-width:0;}
+  .row-meta{display:flex; align-items:center; gap:10px; font-size:0.78rem; color:var(--ink-faint); margin-bottom:5px; flex-wrap:wrap;}
+  .row-startup{background:var(--card); border:1px solid var(--line); color:var(--ink-muted); padding:1px 9px; border-radius:6px; font-weight:600; font-size:0.74rem;}
+  .row-body h3{font-size:1.08rem; font-weight:400; margin:0 0 6px; line-height:1.35; text-wrap:balance;}
+  .row-body p{margin:0; color:var(--ink-muted); font-size:0.91rem; line-height:1.55;}
+  .row-body a.src{font-size:0.85rem; color:var(--ink); font-weight:600; text-decoration:none; border-bottom:1.5px solid var(--marigold);}
+  .row-body a.src:hover{color:var(--sindoor); border-color:var(--sindoor);}
+  .row-amount{
+    flex:none; font-family:"Yeseva One", serif; font-size:1.15rem; color:var(--marigold-ink);
+    background:var(--marigold-soft); padding:5px 12px; border-radius:8px; font-variant-numeric:tabular-nums;
+    align-self:center;
   }
-  .card:hover{ box-shadow:var(--shadow-lg); transform:translateY(-1px); }
-  .stripe{width:4px; border-radius:4px; flex:none; align-self:stretch;}
-  .card-body{flex:1; min-width:0;}
-  .card-meta{
-    display:flex; align-items:center; gap:9px; font-family:"IBM Plex Mono", monospace;
-    font-size:0.7rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px; flex-wrap:wrap;
-  }
-  .card-meta .cat{font-weight:700; display:inline-flex; align-items:center; gap:5px;}
-  .card-meta .cat .sw{width:6px; height:6px; border-radius:50%;}
-  .card h3{font-family:"Fraunces", serif; font-size:1.12rem; font-weight:600; margin:0 0 6px; text-wrap:balance; line-height:1.3;}
-  .card p{margin:0; color:var(--ink-muted); font-size:0.9rem; line-height:1.55;}
-  .card a.src{font-size:0.8rem; color:var(--rust); text-decoration:none; font-weight:600; display:inline-flex; align-items:center; gap:4px;}
-  .card a.src:hover{text-decoration:underline;}
-  .amount{font-family:"IBM Plex Mono", monospace; color:var(--accent-ink); background:var(--accent-soft); padding:2px 8px; border-radius:6px; font-size:0.72rem; font-weight:600; letter-spacing:0;}
 
-  .empty{color:var(--ink-faint); font-size:0.9rem; padding:24px 4px; font-style:italic;}
+  .empty{color:var(--ink-faint); font-size:0.92rem; padding:26px 4px; font-style:italic;}
 
-  .toolbar{display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
+  .toolbar{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
   .search-wrap{position:relative; flex:1; min-width:220px;}
-  .search-wrap svg{position:absolute; left:13px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--ink-faint); pointer-events:none;}
+  .search-wrap svg{position:absolute; left:14px; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--ink-faint); pointer-events:none;}
   input#search{
-    width:100%; padding:11px 14px 11px 36px; border-radius:10px; border:1px solid var(--border);
-    background:var(--surface); color:var(--ink); font-family:"Source Sans 3", sans-serif; font-size:0.92rem;
-    box-shadow:var(--shadow-sm);
+    width:100%; padding:12px 14px 12px 38px; border-radius:9px; border:1.5px solid var(--line);
+    background:var(--card); color:var(--ink); font-family:"Mukta", sans-serif; font-size:0.95rem;
   }
-  input#search:focus{ outline:2px solid var(--accent); outline-offset:1px; }
+  input#search:focus{ outline:2px solid var(--marigold); outline-offset:1px; }
   input#search::placeholder{ color:var(--ink-faint); }
 
-  .dir-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(248px,1fr)); gap:14px;}
+  /* Index-card directory */
+  .dir-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:14px;}
   .s-card{
-    background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--s-color, var(--border));
-    border-radius:14px; box-shadow:var(--shadow);
-    padding:16px; display:flex; flex-direction:column; gap:10px; transition:box-shadow .15s, transform .15s;
+    background:var(--card); border:1px solid var(--line); border-radius:4px 4px 10px 10px;
+    box-shadow:var(--shadow); padding:0; display:flex; flex-direction:column; overflow:hidden;
+    transition:box-shadow .15s, transform .15s;
   }
-  .s-card:hover{ box-shadow:var(--shadow-lg); transform:translateY(-2px); }
+  .s-card:hover{ box-shadow:0 10px 24px rgba(36,27,14,0.14); transform:translateY(-2px); }
+  .s-tab{height:7px; background:var(--s-color, var(--line));}
+  .s-body{padding:16px; display:flex; flex-direction:column; gap:9px; flex:1;}
   .s-top{display:flex; align-items:center; gap:10px;}
   .avatar{
-    width:36px; height:36px; border-radius:10px; flex:none; display:flex; align-items:center; justify-content:center;
-    font-family:"Fraunces", serif; font-weight:700; font-size:0.95rem; color:#fff;
+    width:38px; height:38px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--s-color); color:var(--s-color); font-family:"Yeseva One", serif; font-size:1rem;
   }
-  .s-card h3{font-family:"Fraunces", serif; font-size:1.02rem; font-weight:700; margin:0; line-height:1.25;}
-  .s-card .tagline{font-size:0.83rem; color:var(--ink-muted); margin:0; line-height:1.45;}
+  .s-card h3{font-size:1.05rem; font-weight:400; margin:0; line-height:1.25;}
+  .s-card .tagline{font-size:0.85rem; color:var(--ink-muted); margin:0; line-height:1.45;}
   .tags{display:flex; gap:5px; flex-wrap:wrap;}
-  .tag{font-size:0.65rem; text-transform:uppercase; letter-spacing:0.03em; background:var(--surface-2); color:var(--ink-muted); padding:3px 8px; border-radius:6px; font-weight:600;}
-  .s-meta{font-family:"IBM Plex Mono", monospace; font-size:0.71rem; color:var(--ink-faint);}
-  .s-links{display:flex; gap:8px; margin-top:auto; padding-top:4px;}
+  .tag{font-size:0.68rem; background:var(--paper); color:var(--ink-muted); padding:3px 8px; border-radius:5px; font-weight:500; border:1px solid var(--line-soft);}
+  .s-meta{font-size:0.76rem; color:var(--ink-faint);}
+  .s-links{display:flex; gap:8px; margin-top:auto; padding-top:6px;}
   .s-links a{
-    flex:1; text-align:center; font-size:0.79rem; font-weight:600; text-decoration:none;
-    padding:8px 8px; border-radius:8px; border:1px solid var(--border); color:var(--ink); transition:border-color .15s, color .15s;
+    flex:1; text-align:center; font-size:0.82rem; font-weight:600; text-decoration:none;
+    padding:8px 8px; border-radius:7px; border:1.5px solid var(--line); color:var(--ink); transition:border-color .15s, color .15s;
   }
-  .s-links a.web{background:var(--ink); color:var(--bg); border-color:var(--ink);}
-  .s-links a.li:hover{border-color:var(--rust); color:var(--rust);}
+  .s-links a.web{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+  .s-links a.li:hover{border-color:var(--sindoor); color:var(--sindoor);}
 
   footer{
-    margin-top:56px; padding-top:18px; color:var(--ink-faint); font-size:0.76rem;
-    font-family:"IBM Plex Mono", monospace; text-align:center;
-    border-top:none; position:relative;
-  }
-  footer::before{
-    content:""; display:block; height:2px; width:100%; margin:0 0 18px;
-    background:repeating-linear-gradient(90deg, var(--border) 0 10px, transparent 10px 16px);
+    margin-top:60px; padding-top:20px; color:var(--ink-faint); font-size:0.8rem; text-align:center;
+    border-top:1px dashed var(--line);
   }
 
-  @media (prefers-reduced-motion: reduce){ .dot.pending{animation:none;} .card, .s-card, .day-chip{transition:none;} }
+  @media (prefers-reduced-motion: reduce){ .dotx.pending{animation:none;} .s-card{transition:none;} }
 </style>
 
-<div class="hero">
-  <div class="hero-inner">
-    <div class="top-row">
+<div class="board">
+  <div class="board-inner">
+    <div class="board-top">
       <div class="brand">
-        <div class="brand-mark">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 21c-4-2-6-6-6-10a6 6 0 0 1 6-6c0 5-1 9-4 12" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>
-            <path d="M12 21c4-2 6-6 6-10a6 6 0 0 0-6-6c0 5 1 9 4 12" stroke="#fff" stroke-opacity="0.6" stroke-width="1.7" stroke-linecap="round"/>
-          </svg>
-        </div>
+        <div class="stamp">खेती</div>
         <div>
           <div class="brand-name">Kheti Radar</div>
-          <div class="brand-tag">India AgriTech Intel</div>
+          <div class="brand-tag">India AgriTech rate board</div>
         </div>
       </div>
-      <div class="status-pill" id="status"><span class="dot pending" id="statusDot"></span><span id="statusText">connecting…</span></div>
+      <div class="status-pill"><span class="dotx pending" id="statusDot"></span><span id="statusText">connecting…</span></div>
     </div>
 
-    <h1 class="headline">What's moving in <em>Indian AgriTech</em>, today.</h1>
-    <p class="hero-sub">Funding rounds, incubation cohorts, partnerships and buzz — pulled daily from news and social media — plus a startup directory that links straight to each founder's own site.</p>
+    <h1 class="headline">What's moving in Indian AgriTech today</h1>
+    <p class="board-sub">Funding, incubation, partnerships and buzz — pulled daily from news and social media — plus a startup registry that links straight to each founder's own site.</p>
 
-    <div class="stat-row" id="statRow">
-      <div class="stat" style="--accent-color:var(--rust)"><div class="n" id="statStartups">—</div><div class="l">Startups tracked</div></div>
-      <div class="stat" style="--accent-color:var(--ink)"><div class="n" id="statToday">—</div><div class="l">Updates today</div></div>
-      <div class="stat" style="--accent-color:var(--funding)"><div class="n" id="statFunding">—</div><div class="l">Funding items, 7d</div></div>
-      <div class="stat" style="--accent-color:var(--accent)"><div class="n" id="statDays">—</div><div class="l">Days of history</div></div>
+    <div class="board-stats" id="statRow">
+      <div class="bstat" style="--n-color:var(--marigold)"><div class="n" id="statToday">—</div><div class="l">Updates today</div></div>
+      <div class="bstat"><div class="n" id="statStartups">—</div><div class="l">Startups tracked</div></div>
+      <div class="bstat"><div class="n" id="statFunding">—</div><div class="l">Funding items, 7d</div></div>
+      <div class="bstat"><div class="n" id="statDays">—</div><div class="l">Days of history</div></div>
     </div>
   </div>
 </div>
@@ -244,10 +214,7 @@
 <div class="wrap">
   <section>
     <div class="section-head">
-      <div>
-        <span class="eyebrow">Daily feed</span>
-        <h2>What happened</h2>
-      </div>
+      <h2>Daily feed</h2>
       <span class="count" id="feedCount"></span>
     </div>
     <div class="day-ribbon" id="dayRibbon"></div>
@@ -257,10 +224,7 @@
 
   <section>
     <div class="section-head">
-      <div>
-        <span class="eyebrow">Directory</span>
-        <h2>Startups building this</h2>
-      </div>
+      <h2>Startup registry</h2>
       <span class="count" id="dirCount"></span>
     </div>
     <div class="toolbar">
@@ -289,7 +253,8 @@
     award:{label:"Award", color:"var(--award)"},
     buzz:{label:"Buzz", color:"var(--buzz)"}
   };
-  const AVATAR_PALETTE = ["#B5573A","#2E6B93","#6B4FA0","#C2841A","#8A5A3C","#A9862A"];
+  const AVATAR_PALETTE = ["#B23A2E","#2E6C8E","#7A4B7E","#A8631A","#6B4A2B","#3D6B4F"];
+  const CAT_ORDER = ["funding","incubation","partnership","acquisition","award","product-launch","policy","buzz"];
 
   let allUpdates = [];
   let allStartups = [];
@@ -357,7 +322,7 @@
       const on = activeCats.has(c);
       chip.dataset.on = on ? "1":"0";
       chip.style.color = on ? meta.color : "var(--ink-muted)";
-      chip.style.borderColor = on ? meta.color : "var(--border)";
+      chip.style.borderColor = on ? meta.color : "var(--line)";
       chip.innerHTML = `<span class="sw" style="background:${meta.color}"></span>${meta.label}`;
       chip.onclick = () => {
         if(activeCats.has(c)) activeCats.delete(c); else activeCats.add(c);
@@ -367,14 +332,12 @@
     });
   }
 
-  const CAT_ORDER = ["funding","incubation","partnership","acquisition","award","product-launch","policy","buzz"];
-
   function dedupeForDisplay(rows){
     const seen = [];
     const out = [];
     for(const u of rows){
       const key = (u.headline||"").toLowerCase().replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim();
-      const dup = seen.some(s => s === key || (u.source_url && u.source_url === s.url));
+      const dup = seen.some(s => s === key) || out.some(o => o.source_url && o.source_url === u.source_url);
       if(dup) continue;
       seen.push(key);
       out.push(u);
@@ -382,23 +345,24 @@
     return out;
   }
 
-  function renderFeedCard(u){
+  function renderFeedRow(u){
     const meta = CATS[u.category] || {label:u.category, color:"var(--ink-muted)"};
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <div class="stripe" style="background:${meta.color}"></div>
-      <div class="card-body">
-        <div class="card-meta">
+    const row = document.createElement("div");
+    row.className = "ledger-row";
+    row.innerHTML = `
+      <div class="row-stamp" style="border-color:${meta.color}; color:${meta.color}">${meta.label}</div>
+      <div class="row-body">
+        <div class="row-meta">
           <span>${u.source_platform || "source"}</span>
-          ${u.related_startup ? `<span class="startup-chip">${u.related_startup}</span>` : ""}
-          ${u.amount ? `<span class="amount">${u.amount}</span>` : ""}
+          ${u.related_startup ? `<span class="row-startup">${u.related_startup}</span>` : ""}
         </div>
         <h3>${u.headline}</h3>
         <p>${u.summary || ""}</p>
-        ${u.source_url ? `<div style="margin-top:10px;"><a class="src" href="${u.source_url}" target="_blank" rel="noopener">Read source →</a></div>` : ""}
-      </div>`;
-    return card;
+        ${u.source_url ? `<div style="margin-top:9px;"><a class="src" href="${u.source_url}" target="_blank" rel="noopener">Read source</a></div>` : ""}
+      </div>
+      ${u.amount ? `<div class="row-amount">${u.amount}</div>` : ""}
+    `;
+    return row;
   }
 
   function renderFeed(){
@@ -421,10 +385,10 @@
       const meta = CATS[cat] || {label:cat, color:"var(--ink-muted)"};
       const group = document.createElement("div");
       group.className = "feed-group";
-      group.innerHTML = `<div class="feed-group-head"><span class="sw" style="background:${meta.color}"></span><span style="color:${meta.color}">${meta.label}</span><span class="feed-group-count">${items.length}</span></div>`;
+      group.innerHTML = `<div class="ledger-head" style="--cat-color:${meta.color}"><span class="sw"></span>${meta.label}<span class="n">${items.length}</span></div>`;
       const list = document.createElement("div");
-      list.className = "feed-group-list";
-      items.forEach(u => list.appendChild(renderFeedCard(u)));
+      list.className = "ledger-rows";
+      items.forEach(u => list.appendChild(renderFeedRow(u)));
       group.appendChild(list);
       feed.appendChild(group);
     });
@@ -456,16 +420,19 @@
       const color = hashColor(s.name||"");
       card.style.setProperty("--s-color", color);
       card.innerHTML = `
-        <div class="s-top">
-          <div class="avatar" style="background:${color}">${initial}</div>
-          <h3>${s.name}</h3>
-        </div>
-        <p class="tagline">${s.tagline || ""}</p>
-        <div class="tags">${(s.category||[]).map(c=>`<span class="tag">${c}</span>`).join("")}</div>
-        <div class="s-meta">${[s.city, s.state].filter(Boolean).join(", ")}${s.founded_year ? " · est. "+s.founded_year : ""}${s.funding_stage ? " · "+s.funding_stage : ""}</div>
-        <div class="s-links">
-          ${s.website_url ? `<a class="web" href="${s.website_url}" target="_blank" rel="noopener">Website</a>` : ""}
-          ${s.linkedin_url ? `<a class="li" href="${s.linkedin_url}" target="_blank" rel="noopener">LinkedIn</a>` : ""}
+        <div class="s-tab"></div>
+        <div class="s-body">
+          <div class="s-top">
+            <div class="avatar">${initial}</div>
+            <h3>${s.name}</h3>
+          </div>
+          <p class="tagline">${s.tagline || ""}</p>
+          <div class="tags">${(s.category||[]).map(c=>`<span class="tag">${c}</span>`).join("")}</div>
+          <div class="s-meta">${[s.city, s.state].filter(Boolean).join(", ")}${s.founded_year ? " · est. "+s.founded_year : ""}${s.funding_stage ? " · "+s.funding_stage : ""}</div>
+          <div class="s-links">
+            ${s.website_url ? `<a class="web" href="${s.website_url}" target="_blank" rel="noopener">Website</a>` : ""}
+            ${s.linkedin_url ? `<a class="li" href="${s.linkedin_url}" target="_blank" rel="noopener">LinkedIn</a>` : ""}
+          </div>
         </div>`;
       grid.appendChild(card);
     });
@@ -483,7 +450,7 @@
       ]);
       allUpdates = updates;
       allStartups = startups;
-      dot.className = "dot";
+      dot.className = "dotx";
       const now = new Date().toLocaleTimeString("en-IN", {hour:"2-digit", minute:"2-digit"});
       txt.textContent = "live · synced " + now;
       renderStats();
@@ -492,7 +459,7 @@
       renderFeed();
       renderDirectory("");
     }catch(err){
-      dot.className = "dot off";
+      dot.className = "dotx off";
       txt.textContent = "connection failed";
       document.getElementById("feed").innerHTML = '<div class="empty">Could not reach Supabase. Check connection and reload.</div>';
       document.getElementById("dirGrid").innerHTML = '<div class="empty">Could not reach Supabase. Check connection and reload.</div>';
