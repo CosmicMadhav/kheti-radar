@@ -111,7 +111,23 @@
   .cat-chip .sw{width:7px; height:7px; border-radius:50%; flex:none;}
   .cat-chip[data-on="1"]{ color:var(--ink); border-color:currentColor; }
 
-  .feed{display:flex; flex-direction:column; gap:12px;}
+  .feed{display:flex; flex-direction:column; gap:26px;}
+  .feed-group-head{
+    display:flex; align-items:center; gap:8px; font-weight:700; font-size:0.86rem;
+    text-transform:uppercase; letter-spacing:0.04em; margin-bottom:12px;
+    padding-bottom:8px; border-bottom:1px solid var(--border-soft);
+  }
+  .feed-group-head .sw{width:8px; height:8px; border-radius:50%; flex:none;}
+  .feed-group-count{
+    margin-left:auto; font-family:"IBM Plex Mono", monospace; font-weight:500;
+    color:var(--ink-faint); text-transform:none; letter-spacing:0; background:var(--surface-2);
+    padding:2px 9px; border-radius:99px; font-size:0.75rem;
+  }
+  .feed-group-list{display:flex; flex-direction:column; gap:10px;}
+  .startup-chip{
+    background:var(--surface-2); color:var(--ink-muted); padding:1px 8px; border-radius:6px;
+    font-weight:600; font-size:0.68rem; text-transform:none; letter-spacing:0;
+  }
   .card{
     background:var(--surface); border:1px solid var(--border); border-radius:14px;
     box-shadow:var(--shadow); padding:18px 20px 18px 16px; display:flex; gap:14px;
@@ -330,34 +346,66 @@
     });
   }
 
+  const CAT_ORDER = ["funding","incubation","partnership","acquisition","award","product-launch","policy","buzz"];
+
+  function dedupeForDisplay(rows){
+    const seen = [];
+    const out = [];
+    for(const u of rows){
+      const key = (u.headline||"").toLowerCase().replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim();
+      const dup = seen.some(s => s === key || (u.source_url && u.source_url === s.url));
+      if(dup) continue;
+      seen.push(key);
+      out.push(u);
+    }
+    return out;
+  }
+
+  function renderFeedCard(u){
+    const meta = CATS[u.category] || {label:u.category, color:"var(--ink-muted)"};
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="stripe" style="background:${meta.color}"></div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span>${u.source_platform || "source"}</span>
+          ${u.related_startup ? `<span class="startup-chip">${u.related_startup}</span>` : ""}
+          ${u.amount ? `<span class="amount">${u.amount}</span>` : ""}
+        </div>
+        <h3>${u.headline}</h3>
+        <p>${u.summary || ""}</p>
+        ${u.source_url ? `<div style="margin-top:10px;"><a class="src" href="${u.source_url}" target="_blank" rel="noopener">Read source →</a></div>` : ""}
+      </div>`;
+    return card;
+  }
+
   function renderFeed(){
     const feed = document.getElementById("feed");
     let rows = allUpdates.filter(u => u.update_date === activeDate);
     if(activeCats.size) rows = rows.filter(u => activeCats.has(u.category));
+    rows = dedupeForDisplay(rows);
     document.getElementById("feedCount").textContent = rows.length + (rows.length===1?" update":" updates");
     if(!rows.length){
       feed.innerHTML = '<div class="empty">No updates for this day/filter yet.</div>';
       return;
     }
     feed.innerHTML = "";
-    rows.forEach(u=>{
-      const meta = CATS[u.category] || {label:u.category, color:"var(--ink-muted)"};
-      const card = document.createElement("div");
-      card.className = "card";
-      card.innerHTML = `
-        <div class="stripe" style="background:${meta.color}"></div>
-        <div class="card-body">
-          <div class="card-meta">
-            <span class="cat" style="color:${meta.color}"><span class="sw" style="background:${meta.color}"></span>${meta.label}</span>
-            <span>·</span>
-            <span>${u.source_platform || "source"}</span>
-            ${u.amount ? `<span class="amount">${u.amount}</span>` : ""}
-          </div>
-          <h3>${u.headline}</h3>
-          <p>${u.summary || ""}</p>
-          ${u.source_url ? `<div style="margin-top:10px;"><a class="src" href="${u.source_url}" target="_blank" rel="noopener">Read source →</a></div>` : ""}
-        </div>`;
-      feed.appendChild(card);
+    const byCat = {};
+    rows.forEach(u => { (byCat[u.category] = byCat[u.category] || []).push(u); });
+    const orderedCats = [...CAT_ORDER.filter(c=>byCat[c]), ...Object.keys(byCat).filter(c=>!CAT_ORDER.includes(c))];
+
+    orderedCats.forEach(cat=>{
+      const items = byCat[cat];
+      const meta = CATS[cat] || {label:cat, color:"var(--ink-muted)"};
+      const group = document.createElement("div");
+      group.className = "feed-group";
+      group.innerHTML = `<div class="feed-group-head"><span class="sw" style="background:${meta.color}"></span><span style="color:${meta.color}">${meta.label}</span><span class="feed-group-count">${items.length}</span></div>`;
+      const list = document.createElement("div");
+      list.className = "feed-group-list";
+      items.forEach(u => list.appendChild(renderFeedCard(u)));
+      group.appendChild(list);
+      feed.appendChild(group);
     });
   }
 
