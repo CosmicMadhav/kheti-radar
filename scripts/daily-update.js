@@ -185,6 +185,30 @@ function normalize(str) {
     .trim();
 }
 
+// Accepts either Serper's relative strings ("2 hours ago", "1 day ago") or an
+// absolute date (RFC822 from RSS, or "Sep 4, 2026" from Serper). Missing/
+// unparseable dates are treated as unknown, not rejected outright — the
+// caller decides how strict to be.
+const MAX_AGE_HOURS = 30;
+
+function parseRelativeOrAbsolute(dateStr) {
+  if (!dateStr) return null;
+  const rel = /^(\d+)\s*(minute|hour|day|week|month|year)s?\s*ago$/i.exec(dateStr.trim());
+  if (rel) {
+    const n = parseInt(rel[1], 10);
+    const unitHours = { minute: 1 / 60, hour: 1, day: 24, week: 24 * 7, month: 24 * 30, year: 24 * 365 };
+    return new Date(Date.now() - n * unitHours[rel[2].toLowerCase()] * 3600000);
+  }
+  const abs = new Date(dateStr);
+  return isNaN(abs.getTime()) ? null : abs;
+}
+
+function isRecentEnough(dateStr) {
+  const parsed = parseRelativeOrAbsolute(dateStr);
+  if (!parsed) return null; // unknown — caller decides
+  return (Date.now() - parsed.getTime()) / 3600000 <= MAX_AGE_HOURS;
+}
+
 function wordOverlap(a, b) {
   const wa = new Set(normalize(a).split(" ").filter((w) => w.length > 3));
   const wb = new Set(normalize(b).split(" ").filter((w) => w.length > 3));
@@ -218,10 +242,13 @@ async function serperCall(endpoint, body, attempt = 1) {
   return [...(data.organic || []), ...(data.news || [])];
 }
 
+// tbs:"qdr:d" restricts Google's own results to roughly the last 24 hours —
+// the strongest lever we have for "today's news only", applied at the source
+// rather than trying to guess an article's age after the fact.
 async function serper(endpoint, q, pages = 1) {
   const results = [];
   for (let page = 1; page <= pages; page++) {
-    const items = await serperCall(endpoint, { q, gl: "in", num: 15, page });
+    const items = await serperCall(endpoint, { q, gl: "in", num: 15, page, tbs: "qdr:d" });
     results.push(...items);
     if (!items.length) break;
   }
@@ -261,11 +288,13 @@ async function googleNews(q) {
     const title = /<title>([\s\S]*?)<\/title>/.exec(block)?.[1];
     const link = /<link>([\s\S]*?)<\/link>/.exec(block)?.[1];
     const desc = /<description>([\s\S]*?)<\/description>/.exec(block)?.[1];
+    const pubDate = /<pubDate>([\s\S]*?)<\/pubDate>/.exec(block)?.[1];
     if (title && link) {
       items.push({
         title: decodeEntities(title.replace(/<!\[CDATA\[|\]\]>/g, "").trim()),
         link: link.trim(),
         snippet: desc ? decodeEntities(desc.replace(/<!\[CDATA\[|\]\]>|<[^>]+>/g, "").trim()) : "",
+        date: pubDate ? pubDate.trim() : null,
       });
     }
   }
@@ -333,6 +362,7 @@ async function main() {
 
   const rows = [];
   const usedUrls = new Set();
+  let staleDropped = 0;
   for (const item of candidates) {
     const url = item.link;
     const title = item.title;
@@ -340,6 +370,10 @@ async function main() {
     if (seenUrls.has(url) || usedUrls.has(url)) continue;
     if (!/agri|farm|kisan|krishi|dairy|aquacultur|horticultur/i.test(`${title} ${item.snippet || ""}`)) continue;
     if (seenHeadlines.some((h) => wordOverlap(h, title) > 0.6)) continue;
+    // Only known-stale items are dropped here — tbs:qdr:d already restricts
+    // Serper's own results to ~last 24h, this catches RSS/date-bearing items
+    // that slipped through with an older date.
+    if (isRecentEnough(item.date) === false) { staleDropped++; continue; }
 
     const summary = (item.snippet || "").slice(0, 400) || null;
     const fullText = `${title} ${summary || ""}`;
@@ -361,7 +395,7 @@ async function main() {
   }
 
   await sbPost("daily_updates", rows);
-  console.log(`Inserted ${rows.length} daily_updates rows for ${today}.`);
+  console.log(`Inserted ${rows.length} daily_updates rows for ${today} (dropped ${staleDropped} as stale).`);
 }
 
 main().catch((err) => {
